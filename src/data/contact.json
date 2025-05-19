@@ -1,0 +1,19 @@
+{
+    "heading": "I would love to chat with you 👋",
+    "cta": "Send me a hi here.",
+    "cta-link": "mailto:gauthamkrishnax@gmail.com?subject=Hello%20Gautham!&body=I%20saw%20your%20portfolio%20and%20thought%20I%20would%20say%20hi!",
+    "socials": [
+        {
+            "name": "Github",
+            "link": "https://github.com/gauthamkrishnax"
+        },
+        {
+            "name": "LinkedIn",
+            "link": "https://www.linkedin.com/in/gauthamkrishnas/"
+        },
+        {
+            "name": "Behance",
+            "link": "https://www.behance.net/gauthamkrishnax"
+        }
+    ]
+}

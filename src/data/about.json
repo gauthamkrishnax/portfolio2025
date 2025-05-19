@@ -1,0 +1,38 @@
+{
+    "heading": "Hey there! I'm Gautham Krishna",
+    "paragraphs": [
+        "I craft slick, artisan-grade digital experiences — the kind that make users smile and devs curious. Think smooth animations, snappy performance, and layouts with soul.",
+        "When I’m not building playful interfaces, I’m probably dreaming up side projects, debugging déjà vu errors, or trying (and failing) to relax."
+    ],
+    "footnote": "Let’s build something that makes the web a little less boring.",
+    "timeline": [
+        {
+            "info": "2019 - B.Tech - Vellore Institute of Technology, Chennai",
+            "milestone": true
+        },
+        {
+            "info": "Built my first website — with 12 div tags and a dream",
+            "milestone": false
+        },
+        {
+            "info": "2021 - Internship, Adobe",
+            "milestone": true
+        },
+        {
+            "info": "Got excited about 1px spacing. Who am I now?",
+            "milestone": false
+        },
+        {
+            "info": "Promised myself no more side projects... lied.",
+            "milestone": false
+        },
+        {
+            "info": "2023 - Associate Technical Consultant - UI, Adobe",
+            "milestone": true
+        },
+        {
+            "info": "Still trying to figure out how to make a perfect cup of coffee.",
+            "milestone": false
+        }
+    ]
+}
