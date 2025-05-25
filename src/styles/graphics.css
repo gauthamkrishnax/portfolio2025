@@ -1,0 +1,12 @@
+.graphics {
+    width: 100%;
+    height: var(--space-6xl);
+    background-color: var(--color-primary);
+
+    .white-thingy {
+        background-color: var(--color-white);
+        width: 50%;
+        height: var(--space-5xl);
+        border-radius: 0 0 var(--space-xxl) 0;
+    }
+}

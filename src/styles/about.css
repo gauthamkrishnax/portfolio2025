@@ -1,0 +1,23 @@
+.about {
+    background-color: var(--color-primary);
+    padding: var(--space-lg) var(--space-6xl) var(--space-5xl) 0;
+
+    &>div {
+        padding: var(--space-xxl);
+        background-color: var(--color-white);
+        border-radius: 0 var(--space-xxl) var(--space-xxl) 0;
+
+        .content {
+            width: 50%;
+
+            .heading {
+                margin-top: var(--space-lg);
+                margin-bottom: var(--space-md);
+            }
+
+            p:last-child {
+                margin-top: var(--space-lg);
+            }
+        }
+    }
+}
