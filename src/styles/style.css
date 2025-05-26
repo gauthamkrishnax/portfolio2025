@@ -1,20 +1,20 @@
 @import "../assets/fonts/fonts.css";
 
 :root {
-  color-scheme: light;
+  color-scheme: light dark;
   font-synthesis: none;
   text-rendering: optimizeLegibility;
   -webkit-font-smoothing: antialiased;
   -moz-osx-font-smoothing: grayscale;
 
   /* COLORS */
-  --color-white: #ffffff;
-  --color-black: #000000;
-  --color-gray-900: #222222;
-  --color-gray-800: #333333;
-  --color-gray-700: #444444;
-  --color-gray-500: #888888;
-  --color-gray-100: #eeeeee;
+  --color-white: light-dark(#ffffff, #222222);
+  --color-black: light-dark(#000000, #ffffff);
+  --color-gray-900: light-dark(#222222, #ffffff);
+  --color-gray-800: light-dark(#333333, #bbbbbb);
+  --color-gray-700: light-dark(#444444, #aaaaaa);
+  --color-gray-500: light-dark(#888888, #777777);
+  --color-gray-100: light-dark(#eeeeee, #111111);
   --color-primary: #00ACFF;
   --color-secondary: #F7FF00;
   --color-tertiary: #FF4646;
@@ -51,6 +51,8 @@ body {
   line-height: 1.5;
   color: var(--color-gray-900);
   background-color: var(--color-white);
+  scroll-behavior: smooth;
+  transition: background-color 0.3s ease, color 0.3s ease;
 }
 
 /* RESET */
@@ -122,9 +124,9 @@ span,
   padding: var(--space-xs) var(--space-md);
   font-size: var(--font-size-xs);
   text-align: center;
-  color: var(--color-gray-900);
+  color: light-dark(var(--color-gray-900), var(--color-white));
   background-color: var(--color-secondary);
-  border: 1px solid var(--color-gray-100);
+  border: 1px solid light-dark(var(--color-gray-100), var(--color-gray-500));
   border-radius: var(--space-xs);
   font-family: var(--font-family-heading);
   transition: background-color 0.3s ease;

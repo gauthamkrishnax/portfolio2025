@@ -1,0 +1,48 @@
+.timeline-container {
+    width: 100%;
+    position: relative;
+    overflow-x: hidden;
+    /* Prevent horizontal overflow */
+    padding-top: 45px;
+    /* Add padding for top ellipses */
+    padding-bottom: 45px;
+    /* Add padding for bottom ellipses */
+}
+
+.timeline-svg {
+    overflow: visible;
+    max-width: 100%;
+    /* Ensure SVG doesn't exceed container width */
+}
+
+.timeline-text text {
+    font-family: var(--font-family-main);
+    font-size: var(--font-size-xxs);
+    fill: var(--color-gray-900);
+    max-width: 200px;
+    /* Limit text width */
+    word-wrap: break-word;
+}
+
+.timeline-text .milestone-text {
+    font-size: var(--font-size-xs);
+}
+
+.vertical-reference-line {
+    opacity: 0.5;
+}
+
+/* Responsive adjustments */
+@media (max-width: 768px) {
+    .timeline-svg {
+        transform: scale(0.9);
+        transform-origin: left center;
+    }
+}
+
+@media (max-width: 480px) {
+    .timeline-svg {
+        transform: scale(0.8);
+        transform-origin: left center;
+    }
+}

@@ -1,5 +1,6 @@
 import "../styles/about.css";
 import data from "../data/about.json";
+import Timeline from "./Timeline";
 
 export default function About() {
   const aboutContainer = document.createElement("section");
@@ -12,7 +13,7 @@ export default function About() {
         ${data.paragraphs.map((p) => `<p>${p}</p>`).join("")}
         <p><strong class="subheading">${data.footnote}</strong></p>
       </div>
-      <div class="timeline"></div>
+      <div class="timeline">${Timeline().outerHTML}</div>
     </div>
   `;
   return aboutContainer;

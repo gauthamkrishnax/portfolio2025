@@ -1,0 +1,26 @@
+.portfolio {
+    min-height: 100vh;
+    background-color: var(--color-primary);
+    padding-bottom: var(--space-5xl);
+    padding-right: var(--space-5xl);
+
+    .container {
+        display: flex;
+        flex-direction: row-reverse;
+    }
+
+    .vertical-text {
+        writing-mode: vertical-rl;
+        font-size: 80px;
+        color: var(--color-white);
+        letter-spacing: 4px;
+        margin-top: var(--space-lg);
+        opacity: 0.2;
+    }
+
+    .portfolio-content {
+        width: 100%;
+        padding: var(--space-xxl);
+    }
+
+}

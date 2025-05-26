@@ -1,0 +1,13 @@
+.bento {
+    .grid-container {
+        display: grid;
+        grid-template-columns: 1fr 1fr 1fr;
+        grid-auto-rows: min-content;
+        gap: var(--space-lg);
+    }
+
+    .grid-item {
+        background-color: var(--color-white);
+        border-radius: var(--space-xl);
+    }
+}

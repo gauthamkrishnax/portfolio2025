@@ -8,31 +8,39 @@
     "timeline": [
         {
             "info": "2019 - B.Tech - Vellore Institute of Technology, Chennai",
-            "milestone": true
+            "milestone": true,
+            "position": 10
         },
         {
             "info": "Built my first website — with 12 div tags and a dream",
-            "milestone": false
+            "milestone": false,
+            "position": 120
         },
         {
             "info": "2021 - Internship, Adobe",
-            "milestone": true
+            "milestone": true,
+            "position": 30
         },
         {
             "info": "Got excited about 1px spacing. Who am I now?",
-            "milestone": false
+            "milestone": false,
+            "position": 80
         },
         {
             "info": "Promised myself no more side projects... lied.",
-            "milestone": false
+            "milestone": false,
+            "position": 45
         },
         {
             "info": "2023 - Associate Technical Consultant - UI, Adobe",
-            "milestone": true
+            "current": true,
+            "milestone": true,
+            "position": 60
         },
         {
             "info": "Still trying to figure out how to make a perfect cup of coffee.",
-            "milestone": false
+            "milestone": false,
+            "position": 55
         }
     ]
 }
