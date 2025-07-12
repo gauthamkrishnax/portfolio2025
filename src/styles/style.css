@@ -85,7 +85,6 @@ h6,
 h1,
 .hero-title {
   font-size: var(--font-size-lg);
-  letter-spacing: -0.03em;
   line-height: 1.2;
 }
 

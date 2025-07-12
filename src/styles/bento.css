@@ -7,7 +7,9 @@
     }
 
     .grid-item {
+        overflow: hidden;
         background-color: var(--color-white);
         border-radius: var(--space-xl);
+        height: 100%;
     }
 }

@@ -8,7 +8,10 @@ interface BentoItem {
   minHeight?: string; // Optional property for minimum height
 }
 
-export default function Bento(data: BentoItem[]) {
+export default function Bento(
+  data: BentoItem[],
+  Item: (item: BentoItem) => HTMLElement
+): HTMLElement {
   const bentoContainer = document.createElement("div");
   bentoContainer.className = "bento";
   const container = document.createElement("div");
@@ -16,11 +19,12 @@ export default function Bento(data: BentoItem[]) {
 
   data.forEach((item) => {
     const gridItem = document.createElement("div");
+    gridItem.appendChild(Item(item));
     gridItem.className = "grid-item";
     gridItem.style.gridColumn = item.gridColumn;
     gridItem.style.gridRow = item.gridRow;
     if (item.minHeight) {
-      gridItem.style.minHeight = item.minHeight;
+      gridItem.style.height = item.minHeight;
     }
     container.appendChild(gridItem);
   });

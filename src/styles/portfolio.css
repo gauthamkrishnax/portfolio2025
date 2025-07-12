@@ -15,12 +15,20 @@
         color: var(--color-white);
         letter-spacing: 4px;
         margin-top: var(--space-lg);
-        opacity: 0.2;
+        /* opacity: 0.2; */
     }
 
     .portfolio-content {
         width: 100%;
         padding: var(--space-xxl);
+    }
+
+    .portfolio-image {
+        width: 100%;
+        object-fit: cover;
+        object-position: center center;
+        border-radius: var(--space-xl);
+        box-shadow: 0 4px 8px rgba(0, 0, 0, 0.1);
     }
 
 }
