@@ -69,9 +69,15 @@ export default class ThreeScene {
     private hudGlow!: THREE.Mesh;
     private speedLines: THREE.Mesh[] = [];
     private stars!: THREE.Points;
+    private isVisible: boolean = true;
+    private animationId: number | null = null;
+    private container: HTMLElement;
+    private resizeObserver!: ResizeObserver;
+    private intersectionObserver!: IntersectionObserver;
 
-    constructor(container: HTMLElement) {
+    constructor(container: HTMLElement, onReady?: () => void) {
         this.clock = new THREE.Clock();
+        this.container = container;
         this.initScene(container);
         this.createGrid();
         this.addHUD();
@@ -79,8 +85,15 @@ export default class ThreeScene {
         this.addStars();
         this.setupPostProcessing();
         this.setupThemeObserver();
-        this.addMouseControls(container);
+        this.setupIntersectionObserver();
+        this.setupResizeObserver();
+        this.addMouseControls();
         this.animate();
+
+        // Call onReady callback after a short delay to ensure everything is initialized
+        if (onReady) {
+            setTimeout(onReady, 100);
+        }
     }
 
     private initScene(container: HTMLElement) {
@@ -97,16 +110,21 @@ export default class ThreeScene {
         );
         this.camera.position.z = 5; // Zoom in
 
-        // Renderer
+        // Renderer with performance optimizations
         this.renderer = new THREE.WebGLRenderer({
-            antialias: true,
-            alpha: true // Allow parent background
+            antialias: false, // Disable antialiasing for better performance
+            alpha: true, // Allow parent background
+            powerPreference: "high-performance",
+            stencil: false,
+            depth: true
         });
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
         this.renderer.setSize(container.clientWidth, container.clientHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 2));
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Limit pixel ratio
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.5;
+        this.renderer.shadowMap.enabled = false; // Disable shadows for performance
+        this.renderer.outputColorSpace = THREE.SRGBColorSpace;
 
         container.appendChild(this.renderer.domElement);
 
@@ -120,7 +138,8 @@ export default class ThreeScene {
     }
 
     private createGrid() {
-        const gridGeometry = new THREE.PlaneGeometry(10, 30, 50, 150);
+        // Reduced geometry complexity for better performance
+        const gridGeometry = new THREE.PlaneGeometry(10, 30, 30, 90);
         const gridMaterial = new THREE.ShaderMaterial({
             vertexShader: gridVertexShader,
             fragmentShader: gridFragmentShader,
@@ -151,12 +170,12 @@ export default class ThreeScene {
         const renderPass = new RenderPass(this.scene, this.camera);
         this.composer.addPass(renderPass);
 
-        // Bloom effect
+        // Bloom effect with reduced quality for performance
         const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(window.innerWidth, window.innerHeight),
-            2.0,  // strength (much higher)
-            1.0,  // radius
-            0.7   // threshold (lower for more bloom)
+            new THREE.Vector2(this.container.clientWidth / 2, this.container.clientHeight / 2), // Reduced resolution
+            1.5,  // Reduced strength
+            0.8,  // Reduced radius
+            0.8   // Increased threshold for less bloom
         );
         this.composer.addPass(bloomPass);
 
@@ -168,6 +187,35 @@ export default class ThreeScene {
     private setupThemeObserver() {
         const observer = new MutationObserver(() => this.updateInvertPass());
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
+    }
+
+    private setupIntersectionObserver() {
+        this.intersectionObserver = new IntersectionObserver(
+            (entries) => {
+                entries.forEach(entry => {
+                    this.isVisible = entry.isIntersecting;
+                    if (!this.isVisible) {
+                        this.stopAnimation();
+                    } else {
+                        this.startAnimation();
+                    }
+                });
+            },
+            { threshold: 0.1 }
+        );
+        this.intersectionObserver.observe(this.container);
+    }
+
+    private setupResizeObserver() {
+        this.resizeObserver = new ResizeObserver(() => {
+            if (this.isVisible) {
+                this.camera.aspect = this.container.clientWidth / this.container.clientHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(this.container.clientWidth, this.container.clientHeight);
+                this.composer.setSize(this.container.clientWidth, this.container.clientHeight);
+            }
+        });
+        this.resizeObserver.observe(this.container);
     }
 
     private updateInvertPass() {
@@ -196,9 +244,9 @@ export default class ThreeScene {
     }
 
     private addSpeedLines() {
-        // Create 32 speed lines
-        for (let i = 0; i < 32; i++) {
-            const geom = new THREE.CylinderGeometry(0.01, 0.01, 1.2, 6);
+        // Reduced number of speed lines for better performance
+        for (let i = 0; i < 16; i++) {
+            const geom = new THREE.CylinderGeometry(0.01, 0.01, 1.2, 4); // Reduced segments
             const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 });
             const line = new THREE.Mesh(geom, mat);
             line.position.x = (Math.random() - 0.5) * 7;
@@ -211,9 +259,9 @@ export default class ThreeScene {
     }
 
     private addStars() {
-        // Starfield: 200 points
+        // Reduced starfield for better performance
         const starGeom = new THREE.BufferGeometry();
-        const starCount = 200;
+        const starCount = 100; // Reduced from 200
         const positions = new Float32Array(starCount * 3);
         for (let i = 0; i < starCount; i++) {
             const r = 8 + Math.random() * 8;
@@ -226,21 +274,21 @@ export default class ThreeScene {
         starGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
         // Create a circular star texture (always white)
         const starCanvas = document.createElement('canvas');
-        starCanvas.width = 32; starCanvas.height = 32;
+        starCanvas.width = 16; starCanvas.height = 16; // Reduced texture size
         const ctx = starCanvas.getContext('2d')!;
-        ctx.clearRect(0, 0, 32, 32);
+        ctx.clearRect(0, 0, 16, 16);
         ctx.beginPath();
-        ctx.arc(16, 16, 14, 0, Math.PI * 2);
+        ctx.arc(8, 8, 7, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fillStyle = '#fff';
         ctx.shadowColor = '#fff';
-        ctx.shadowBlur = 8;
+        ctx.shadowBlur = 4; // Reduced blur
         ctx.fill();
         const starTexture = new THREE.Texture(starCanvas);
         starTexture.needsUpdate = true;
         const starMat = new THREE.PointsMaterial({
             map: starTexture,
-            size: 0.18,
+            size: 0.15, // Reduced size
             transparent: true,
             alphaTest: 0.1,
             opacity: 0.8,
@@ -265,8 +313,23 @@ export default class ThreeScene {
         }
     }
 
+    private startAnimation() {
+        if (!this.animationId) {
+            this.animate();
+        }
+    }
+
+    private stopAnimation() {
+        if (this.animationId) {
+            cancelAnimationFrame(this.animationId);
+            this.animationId = null;
+        }
+    }
+
     private animate() {
-        requestAnimationFrame(() => this.animate());
+        if (!this.isVisible) return;
+
+        this.animationId = requestAnimationFrame(() => this.animate());
 
         const time = this.clock.getElapsedTime();
         this.scroll += 0.08; // Speed of tunnel movement
@@ -324,7 +387,36 @@ export default class ThreeScene {
     }
 
     public dispose() {
+        // Stop animation
+        this.stopAnimation();
+
+        // Clean up observers
+        if (this.intersectionObserver) {
+            this.intersectionObserver.disconnect();
+        }
+        if (this.resizeObserver) {
+            this.resizeObserver.disconnect();
+        }
+
+        // Dispose of geometries and materials
+        this.scene.traverse((object) => {
+            if (object instanceof THREE.Mesh) {
+                object.geometry.dispose();
+                if (Array.isArray(object.material)) {
+                    object.material.forEach(material => material.dispose());
+                } else {
+                    object.material.dispose();
+                }
+            }
+        });
+
+        // Dispose renderer and clear scene
         this.renderer.dispose();
         this.scene.clear();
+
+        // Remove canvas from DOM
+        if (this.renderer.domElement.parentNode) {
+            this.renderer.domElement.parentNode.removeChild(this.renderer.domElement);
+        }
     }
 } 

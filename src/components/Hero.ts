@@ -37,6 +37,12 @@ export default function Hero() {
         </div>
       </div>
       <div class="right" id="three-container">
+        <div class="loading-overlay" id="loading-overlay">
+          <div class="loader">
+            <div class="loader-spinner"></div>
+            <div class="loader-text">Loading Experience...</div>
+          </div>
+        </div>
       </div>
     </section>
   `;
@@ -44,8 +50,18 @@ export default function Hero() {
   // Initialize Three.js scene after DOM is ready
   setTimeout(() => {
     const container = heroContainer.querySelector('#three-container') as HTMLElement;
+    const loadingOverlay = heroContainer.querySelector('#loading-overlay') as HTMLElement;
+
     if (container) {
-      new ThreeScene(container);
+      new ThreeScene(container, () => {
+        // Hide loading overlay when scene is ready
+        if (loadingOverlay) {
+          loadingOverlay.style.opacity = '0';
+          setTimeout(() => {
+            loadingOverlay.style.display = 'none';
+          }, 500);
+        }
+      });
     }
   }, 0);
 
