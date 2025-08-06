@@ -250,15 +250,19 @@ export default class ThreeScene {
         this.scene.add(this.stars);
     }
 
-    private addMouseControls(container: HTMLElement) {
-        container.addEventListener('mousemove', (event) => {
-            const rect = container.getBoundingClientRect();
-            const x = (event.clientX - rect.left) / rect.width;
-            const y = (event.clientY - rect.top) / rect.height;
-            // Map to -1 to 1
-            this.cameraTarget.x = (x - 0.5) * 2;
-            this.cameraTarget.y = (0.5 - y) * 2;
-        });
+    private addMouseControls() {
+        // Find the hero section to listen for mouse events across the full width
+        const heroSection = document.querySelector('.hero') as HTMLElement;
+        if (heroSection) {
+            heroSection.addEventListener('mousemove', (event) => {
+                const rect = heroSection.getBoundingClientRect();
+                const x = (event.clientX - rect.left) / rect.width;
+                const y = (event.clientY - rect.top) / rect.height;
+                // Map to -1 to 1
+                this.cameraTarget.x = (x - 0.5) * 2;
+                this.cameraTarget.y = (0.5 - y) * 2;
+            });
+        }
     }
 
     private animate() {
