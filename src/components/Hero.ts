@@ -2,7 +2,7 @@ import "../styles/hero.css";
 import data from "../data/hero.json";
 import LinkIcon from "../assets/icons/link.svg?raw";
 import ChevronIcon from "../assets/icons/chevron.svg?raw";
-import placeholderImage from "../assets/images/hero-placeholder.png";
+import ThreeScene from "./ThreeScene";
 
 const html = String.raw;
 
@@ -36,10 +36,18 @@ export default function Hero() {
           <span><a href="#about">${ChevronIcon}About Me</a></span>
         </div>
       </div>
-      <div class="right">
-        <img src=${placeholderImage} alt=""></img>
+      <div class="right" id="three-container">
       </div>
     </section>
   `;
+
+  // Initialize Three.js scene after DOM is ready
+  setTimeout(() => {
+    const container = heroContainer.querySelector('#three-container') as HTMLElement;
+    if (container) {
+      new ThreeScene(container);
+    }
+  }, 0);
+
   return heroContainer;
 }

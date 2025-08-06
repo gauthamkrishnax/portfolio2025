@@ -26,6 +26,11 @@
             margin-bottom: var(--space-xxl);
             margin-top: var(--space-sm);
 
+            h1 {
+                max-width: 80%;
+                margin-bottom: var(--space-sm);
+            }
+
             h2 {
                 max-width: 450px;
                 margin-bottom: var(--space-sm);
@@ -49,16 +54,33 @@
     .right {
         width: 50%;
         height: 100%;
-        background-color: var(--color-primary);
-        display: grid;
-        place-items: center;
+        background: var(--color-primary);
+        display: flex;
+        align-items: center;
+        justify-content: center;
+        position: relative;
+        overflow: hidden;
+        padding: var(--space-lg);
 
-        img {
-            width: 80%;
-            height: 80%;
-            object-fit: cover;
-            object-position: center;
+        canvas {
+            width: 80% !important;
+            height: 80% !important;
+            display: block;
             border-radius: var(--space-lg);
+            background: none !important;
+            box-shadow: 0 4px 32px 0 rgba(0, 0, 0, 0.12);
+        }
+
+        &::before {
+            content: '';
+            position: absolute;
+            top: 0;
+            left: 0;
+            right: 0;
+            bottom: 0;
+            background: radial-gradient(circle at 30% 30%, rgba(0, 172, 255, 0.1) 0%, transparent 70%);
+            pointer-events: none;
+            z-index: 1;
         }
     }
 }

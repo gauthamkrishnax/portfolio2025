@@ -11,14 +11,14 @@ export default function Contact() {
   <img src="${me}" alt="My Image" class="me">
     <div>
         <h2 class="heading">${data.heading}</h2>
-        <a class="button" href=${data["cta-link"]}>${data.cta}</a>
+        <a class="button secondary" href=${data["cta-link"]}>${data.cta}</a>
         <div class="socials">
             ${data.socials
-              .map(
-                (social) =>
-                  `<a class="button secondary" href="${social.link} target="_blank">${social.name}</a>`
-              )
-              .join("")}
+      .map(
+        (social) =>
+          `<a class="button secondary" href="${social.link} target="_blank">${social.name}</a>`
+      )
+      .join("")}
         </div>
     </div>
   </div>
