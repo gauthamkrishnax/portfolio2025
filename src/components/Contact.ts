@@ -1,6 +1,6 @@
 import "../styles/contact.css";
 import data from "../data/contact.json";
-import me from "../assets/images/me.jpeg";
+import me from "../assets/images/me.gif";
 
 export default function Contact() {
   const contactContainer = document.createElement("section");

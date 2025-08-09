@@ -38,6 +38,7 @@ const gridVertexShader = `
 const gridFragmentShader = `
   uniform float time;
   uniform float scroll;
+  uniform float glowIntensity;
   varying vec2 vUv;
   varying vec3 vPosition;
   
@@ -48,8 +49,15 @@ const gridFragmentShader = `
     vec2 grid = abs(fract(uv - 0.5) - 0.5) / fwidth(uv);
     float line = min(grid.x, grid.y);
     float opacity = 1.0 - min(line, 1.0);
-    opacity *= 0.35;
-    vec3 color = vec3(0.0, 0.85, 1.0) * opacity;
+    opacity *= 0.35 * glowIntensity; // Theme-adaptive base opacity
+    
+    // Enhanced glow effect with pulsing
+    float pulse = 0.8 + 0.3 * sin(time * 2.0);
+    vec3 color = vec3(0.0, 0.85, 1.0) * opacity * pulse;
+    
+    // Add extra brightness for bloom effect (theme-adaptive)
+    color += vec3(0.0, 0.2, 0.3) * opacity * glowIntensity;
+    
     gl_FragColor = vec4(color, opacity);
   }
 `;
@@ -60,6 +68,7 @@ export default class ThreeScene {
     private renderer!: THREE.WebGLRenderer;
     private composer!: EffectComposer;
     private invertPass!: ShaderPass;
+    private bloomPass!: UnrealBloomPass;
     private grid!: THREE.Mesh;
     private topGrid!: THREE.Mesh;
     private clock: THREE.Clock;
@@ -85,6 +94,7 @@ export default class ThreeScene {
         this.addStars();
         this.setupPostProcessing();
         this.setupThemeObserver();
+        this.updateGlowIntensity(); // Set initial glow based on current theme
         this.setupIntersectionObserver();
         this.setupResizeObserver();
         this.addMouseControls();
@@ -120,7 +130,7 @@ export default class ThreeScene {
         });
         this.renderer.setClearColor(0x000000, 0); // Fully transparent
         this.renderer.setSize(container.clientWidth, container.clientHeight);
-        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.5)); // Limit pixel ratio
+        this.renderer.setPixelRatio(Math.min(window.devicePixelRatio, 1.2)); // Further limited pixel ratio for performance
         this.renderer.toneMapping = THREE.ACESFilmicToneMapping;
         this.renderer.toneMappingExposure = 1.5;
         this.renderer.shadowMap.enabled = false; // Disable shadows for performance
@@ -128,24 +138,31 @@ export default class ThreeScene {
 
         container.appendChild(this.renderer.domElement);
 
-        // Handle resize
+        // Optimized resize handling with debouncing
+        let resizeTimeout: number;
         window.addEventListener('resize', () => {
-            this.camera.aspect = container.clientWidth / container.clientHeight;
-            this.camera.updateProjectionMatrix();
-            this.renderer.setSize(container.clientWidth, container.clientHeight);
-            this.composer.setSize(container.clientWidth, container.clientHeight);
+            clearTimeout(resizeTimeout);
+            resizeTimeout = setTimeout(() => {
+                this.camera.aspect = container.clientWidth / container.clientHeight;
+                this.camera.updateProjectionMatrix();
+                this.renderer.setSize(container.clientWidth, container.clientHeight);
+                this.composer.setSize(container.clientWidth, container.clientHeight);
+                // Update bloom pass resolution for new size
+                this.bloomPass.setSize(container.clientWidth / 2, container.clientHeight / 2);
+            }, 100) as unknown as number;
         });
     }
 
     private createGrid() {
-        // Reduced geometry complexity for better performance
-        const gridGeometry = new THREE.PlaneGeometry(10, 30, 30, 90);
+        // Further reduced geometry complexity for better performance
+        const gridGeometry = new THREE.PlaneGeometry(10, 30, 20, 60); // Reduced from 30x90 to 20x60
         const gridMaterial = new THREE.ShaderMaterial({
             vertexShader: gridVertexShader,
             fragmentShader: gridFragmentShader,
             uniforms: {
                 time: { value: 0 },
-                scroll: { value: 0 }
+                scroll: { value: 0 },
+                glowIntensity: { value: 1.0 }
             },
             transparent: true,
             side: THREE.DoubleSide
@@ -170,14 +187,14 @@ export default class ThreeScene {
         const renderPass = new RenderPass(this.scene, this.camera);
         this.composer.addPass(renderPass);
 
-        // Bloom effect with reduced quality for performance
-        const bloomPass = new UnrealBloomPass(
-            new THREE.Vector2(this.container.clientWidth / 2, this.container.clientHeight / 2), // Reduced resolution
-            1.5,  // Reduced strength
-            0.8,  // Reduced radius
-            0.8   // Increased threshold for less bloom
+        // Enhanced bloom effect with performance optimization
+        this.bloomPass = new UnrealBloomPass(
+            new THREE.Vector2(this.container.clientWidth / 2, this.container.clientHeight / 2), // Half resolution for performance
+            2.5,  // Increased strength for more dramatic glow
+            1.2,  // Increased radius for softer, more spread out glow
+            0.3   // Lower threshold to capture more objects in bloom
         );
-        this.composer.addPass(bloomPass);
+        this.composer.addPass(this.bloomPass);
 
         // Invert color pass (added/removed based on theme)
         this.invertPass = new ShaderPass(InvertColorShader);
@@ -185,7 +202,10 @@ export default class ThreeScene {
     }
 
     private setupThemeObserver() {
-        const observer = new MutationObserver(() => this.updateInvertPass());
+        const observer = new MutationObserver(() => {
+            this.updateInvertPass();
+            this.updateGlowIntensity();
+        });
         observer.observe(document.documentElement, { attributes: true, attributeFilter: ['data-theme'] });
     }
 
@@ -228,26 +248,85 @@ export default class ThreeScene {
         }
     }
 
+    private updateGlowIntensity() {
+        const theme = document.documentElement.getAttribute('data-theme');
+        const isLightMode = theme === 'light';
+
+        // Adjust bloom intensity based on theme
+        if (this.bloomPass) {
+            this.bloomPass.strength = isLightMode ? 1.2 : 2.5; // Reduced glow in light mode
+            this.bloomPass.radius = isLightMode ? 0.8 : 1.2;
+            this.bloomPass.threshold = isLightMode ? 0.6 : 0.3; // Higher threshold in light mode
+        }
+
+        // Adjust HUD glow based on theme
+        if (this.hudRing && this.hudRing.material instanceof THREE.MeshBasicMaterial) {
+            this.hudRing.material.opacity = isLightMode ? 0.6 : 0.9;
+        }
+        if (this.hudGlow && this.hudGlow.material instanceof THREE.MeshBasicMaterial) {
+            this.hudGlow.material.opacity = isLightMode ? 0.15 : 0.4;
+            // Adjust color brightness for theme
+            this.hudGlow.material.color.setHex(isLightMode ? 0x22aaaa : 0x44ffff);
+        }
+
+        // Adjust speed lines glow based on theme
+        this.speedLines.forEach(line => {
+            if (line.material instanceof THREE.MeshBasicMaterial) {
+                line.material.opacity = isLightMode ? 0.4 : 0.7;
+            }
+        });
+
+        // Adjust stars glow based on theme
+        if (this.stars && this.stars.material instanceof THREE.PointsMaterial) {
+            this.stars.material.opacity = isLightMode ? 0.5 : 0.9;
+            this.stars.material.size = isLightMode ? 0.15 : 0.2;
+        }
+
+        // Adjust grid glow based on theme
+        const gridIntensity = isLightMode ? 1.2 : 1.6;
+        if (this.grid && this.grid.material instanceof THREE.ShaderMaterial) {
+            this.grid.material.uniforms.glowIntensity.value = gridIntensity;
+        }
+        if (this.topGrid && this.topGrid.material instanceof THREE.ShaderMaterial) {
+            this.topGrid.material.uniforms.glowIntensity.value = gridIntensity;
+        }
+    }
+
     private addHUD() {
-        // Glowing ring/reticle at the center (HUD)
+        // Glowing ring/reticle at the center (HUD) with bright colors for bloom
         const ringGeometry = new THREE.RingGeometry(0.18, 0.22, 48);
-        const ringMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide, transparent: true, opacity: 0.9 });
+        const ringMaterial = new THREE.MeshBasicMaterial({
+            color: 0x00ffff,
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.9
+        });
         this.hudRing = new THREE.Mesh(ringGeometry, ringMaterial);
         this.hudRing.position.set(0, 0, -1.2);
         this.scene.add(this.hudRing);
-        // Glow ring
+
+        // Glow ring with brighter color for bloom effect
         const glowGeometry = new THREE.RingGeometry(0.24, 0.32, 48);
-        const glowMaterial = new THREE.MeshBasicMaterial({ color: 0x00ffff, side: THREE.DoubleSide, transparent: true, opacity: 0.25 });
+        const glowMaterial = new THREE.MeshBasicMaterial({
+            color: 0x44ffff,  // Brighter cyan for better bloom
+            side: THREE.DoubleSide,
+            transparent: true,
+            opacity: 0.4
+        });
         this.hudGlow = new THREE.Mesh(glowGeometry, glowMaterial);
         this.hudGlow.position.set(0, 0, -1.21);
         this.scene.add(this.hudGlow);
     }
 
     private addSpeedLines() {
-        // Reduced number of speed lines for better performance
-        for (let i = 0; i < 16; i++) {
-            const geom = new THREE.CylinderGeometry(0.01, 0.01, 1.2, 4); // Reduced segments
-            const mat = new THREE.MeshBasicMaterial({ color: 0xffffff, transparent: true, opacity: 0.7 });
+        // Enhanced speed lines with bright colors for bloom
+        for (let i = 0; i < 12; i++) { // Reduced from 16 to 12 speed lines
+            const geom = new THREE.CylinderGeometry(0.01, 0.01, 1.2, 3); // Further reduced segments from 4 to 3
+            const mat = new THREE.MeshBasicMaterial({
+                color: 0xffffff,
+                transparent: true,
+                opacity: 0.7
+            });
             const line = new THREE.Mesh(geom, mat);
             line.position.x = (Math.random() - 0.5) * 7;
             line.position.y = (Math.random() - 0.5) * 3.5;
@@ -259,9 +338,9 @@ export default class ThreeScene {
     }
 
     private addStars() {
-        // Reduced starfield for better performance
+        // Further reduced starfield for better performance
         const starGeom = new THREE.BufferGeometry();
-        const starCount = 100; // Reduced from 200
+        const starCount = 60; // Further reduced from 100 to 60
         const positions = new Float32Array(starCount * 3);
         for (let i = 0; i < starCount; i++) {
             const r = 8 + Math.random() * 8;
@@ -272,26 +351,26 @@ export default class ThreeScene {
             positions[i * 3 + 2] = -Math.random() * 30;
         }
         starGeom.setAttribute('position', new THREE.BufferAttribute(positions, 3));
-        // Create a circular star texture (always white)
+        // Create a circular star texture (always white) - further optimized
         const starCanvas = document.createElement('canvas');
-        starCanvas.width = 16; starCanvas.height = 16; // Reduced texture size
+        starCanvas.width = 8; starCanvas.height = 8; // Further reduced texture size from 16x16 to 8x8
         const ctx = starCanvas.getContext('2d')!;
-        ctx.clearRect(0, 0, 16, 16);
+        ctx.clearRect(0, 0, 8, 8);
         ctx.beginPath();
-        ctx.arc(8, 8, 7, 0, Math.PI * 2);
+        ctx.arc(4, 4, 3, 0, Math.PI * 2);
         ctx.closePath();
         ctx.fillStyle = '#fff';
         ctx.shadowColor = '#fff';
-        ctx.shadowBlur = 4; // Reduced blur
+        ctx.shadowBlur = 2; // Further reduced blur
         ctx.fill();
         const starTexture = new THREE.Texture(starCanvas);
         starTexture.needsUpdate = true;
         const starMat = new THREE.PointsMaterial({
             map: starTexture,
-            size: 0.15, // Reduced size
+            size: 0.2, // Slightly increased size for better glow visibility
             transparent: true,
             alphaTest: 0.1,
-            opacity: 0.8,
+            opacity: 0.9,
             color: 0xffffff
         });
         this.stars = new THREE.Points(starGeom, starMat);
@@ -366,6 +445,7 @@ export default class ThreeScene {
                 line.position.z = -Math.random() * 18 - 2;
             }
         }
+
         // Animate stars (parallax)
         if (this.stars) {
             const pos = this.stars.geometry.attributes.position;
